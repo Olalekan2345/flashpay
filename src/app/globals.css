@@ -1,26 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
+  --arcium-purple: #6c44fc;
+  --arcium-cyan: #5de2da;
+  --arcium-green: #95ffdd;
+  --card: #141414;
+  --card-elevated: #1a1a1a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text-secondary: #999999;
+  --text-muted: #666666;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0e0e0e;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Gradient text — Arcium purple → cyan */
+.gradient-text {
+  background: linear-gradient(135deg, #6c44fc 0%, #5de2da 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Arcium purple glow */
+.glow-purple {
+  box-shadow: 0 0 24px rgba(108, 68, 252, 0.35);
+}
+
+.glow-purple-sm {
+  box-shadow: 0 0 12px rgba(108, 68, 252, 0.25);
+}
+
+/* Wallet adapter modal overrides — match Arcium theme */
+.wallet-adapter-modal-wrapper {
+  background: #141414 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 16px !important;
+}
+.wallet-adapter-modal-button-close {
+  background: rgba(255,255,255,0.05) !important;
+}
+.wallet-adapter-button {
+  background: #6c44fc !important;
+  border-radius: 8px !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+.wallet-adapter-button:hover {
+  background: #7c54ff !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: rgba(255,255,255,0.08) !important;
+}
+.wallet-adapter-modal-title {
+  color: #ffffff !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+.wallet-adapter-modal-overlay {
+  background: rgba(0,0,0,0.75) !important;
+  backdrop-filter: blur(4px) !important;
 }
