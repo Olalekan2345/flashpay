@@ -87,6 +87,72 @@ body {
   box-shadow: 0 0 12px rgba(108, 68, 252, 0.25);
 }
 
+/* ── Light theme overrides ─────────────────────────────────────────────────
+   next-themes adds class="light" on <html>. These rules override Tailwind
+   utility classes with two-class specificity to win without !important.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* CSS variables */
+html.light {
+  color-scheme: light;
+  --background: #f5f7fa;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-elevated: #f0f2f5;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+  --text-secondary: #555555;
+  --text-muted: #777777;
+}
+
+/* Page / layout backgrounds */
+html.light .bg-black            { background-color: #f5f7fa; }
+html.light .bg-\[\#0e0e0e\]     { background-color: #f0f2f5; }
+html.light .bg-\[\#141414\]     { background-color: #ffffff; }
+html.light .bg-\[\#1a1a1a\]     { background-color: #f0f2f5; }
+html.light .bg-\[\#242424\]     { background-color: #e4e6ea; }
+
+/* Text */
+html.light .text-white          { color: #0a0a0a; }
+html.light .text-white\/80      { color: rgba(10,10,10,0.8); }
+html.light .text-white\/70      { color: rgba(10,10,10,0.7); }
+html.light .text-\[\#999999\]   { color: #555555; }
+html.light .text-\[\#666666\]   { color: #777777; }
+html.light .text-\[\#444444\]   { color: #999999; }
+
+/* Borders */
+html.light .border-white\/8     { border-color: rgba(0,0,0,0.08); }
+html.light .border-white\/10    { border-color: rgba(0,0,0,0.10); }
+html.light .border-white\/15    { border-color: rgba(0,0,0,0.15); }
+
+/* Dividers */
+html.light .divide-white\/4 > * + * { border-color: rgba(0,0,0,0.04); }
+html.light .divide-white\/5 > * + * { border-color: rgba(0,0,0,0.05); }
+
+/* Hover backgrounds */
+html.light .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.04); }
+html.light .hover\:bg-white\/8:hover  { background-color: rgba(0,0,0,0.06); }
+html.light .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.08); }
+
+/* Static semi-transparent whites used for buttons/inputs */
+html.light .bg-white\/5         { background-color: rgba(0,0,0,0.04); }
+html.light .bg-white\/4         { background-color: rgba(0,0,0,0.03); }
+html.light .bg-white\/8         { background-color: rgba(0,0,0,0.06); }
+
+/* Backdrop / overlay */
+html.light .bg-\[\#0e0e0e\]\/90 { background-color: rgba(240,242,245,0.9); }
+
+/* Scrollbar in light mode */
+html.light ::-webkit-scrollbar-track { background: #f0f2f5; }
+html.light ::-webkit-scrollbar-thumb { background: #cccccc; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #bbbbbb; }
+
+/* Shimmer in light mode */
+html.light .shimmer {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+}
+
 /* Wallet adapter modal overrides — match Arcium theme */
 .wallet-adapter-modal-wrapper {
   background: #141414 !important;

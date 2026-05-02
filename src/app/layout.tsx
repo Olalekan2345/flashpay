@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { SolanaProvider } from '@/components/wallet/SolanaProvider'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({ variable: '--font-space-grotesk', subsets: ['latin'] })
@@ -20,23 +21,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} h-full`}>
+    <html lang="en" className={`${spaceGrotesk.variable} h-full`} suppressHydrationWarning>
       <body className="h-full bg-black antialiased">
-        <SolanaProvider>
-          {children}
-        </SolanaProvider>
-        <Toaster
-          theme="dark"
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#141414',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#ffffff',
-              fontFamily: 'Space Grotesk, system-ui, sans-serif',
-            },
-          }}
-        />
+        <ThemeProvider>
+          <SolanaProvider>
+            {children}
+          </SolanaProvider>
+          <Toaster
+            theme="dark"
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#141414',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#ffffff',
+                fontFamily: 'Space Grotesk, system-ui, sans-serif',
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   )

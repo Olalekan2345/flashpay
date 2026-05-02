@@ -2,6 +2,7 @@
 import { Bell, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 interface HeaderProps {
   title: string
@@ -22,6 +23,7 @@ export function Header({ title, subtitle, userName = 'Admin', userInitials = 'AD
 
       <div className="flex items-center gap-3">
         <ConnectWalletButton variant="compact" />
+        <ThemeToggle />
 
         {/* Notifications */}
         <div className="relative">
