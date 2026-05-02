@@ -5,6 +5,7 @@ import { ArciumStatusBanner } from '@/components/dashboard/ArciumBadge'
 import { ConfidentialSalaryBadge } from '@/components/dashboard/ArciumBadge'
 import { getSession } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getUSDCBalance } from '@/lib/solana'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   Wallet, Users, TrendingUp, CreditCard, Zap,
@@ -45,7 +46,17 @@ export default async function DashboardOverviewPage() {
     .sort((a, b) => new Date(b.paid_at ?? 0).getTime() - new Date(a.paid_at ?? 0).getTime())
     .slice(0, 5)
 
-  const treasuryWarning = employer.treasury_balance < nextPayoutTotal * 1.2
+  // Use real on-chain balance if wallet connected, else fall back to DB value
+  const realBalance = employer.wallet_address
+    ? await getUSDCBalance(employer.wallet_address)
+    : employer.treasury_balance
+
+  // Only warn when wallet is connected, there are active employees to pay,
+  // and the real on-chain balance is actually insufficient
+  const treasuryWarning =
+    !!employer.wallet_address &&
+    nextPayoutTotal > 0 &&
+    realBalance < nextPayoutTotal
 
   const initials = session.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
 
@@ -68,7 +79,7 @@ export default async function DashboardOverviewPage() {
             <div>
               <p className="text-sm font-semibold text-amber-300">Low Treasury Balance</p>
               <p className="text-xs text-[#999999] mt-0.5">
-                Your treasury ({formatCurrency(employer.treasury_balance)}) may not cover the next payroll run ({formatCurrency(nextPayoutTotal)}).
+                Your wallet holds {formatCurrency(realBalance)} USDC but the next payroll run needs {formatCurrency(nextPayoutTotal)}.
                 {' '}<Link href="/dashboard/treasury" className="text-amber-400 hover:underline">Add funds →</Link>
               </p>
             </div>
@@ -79,7 +90,7 @@ export default async function DashboardOverviewPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatsCard
             title="Treasury Balance"
-            value={formatCurrency(employer.treasury_balance)}
+            value={formatCurrency(realBalance)}
             subtitle="Available for payroll"
             icon={Wallet}
             iconColor="text-[#95ffdd]"
