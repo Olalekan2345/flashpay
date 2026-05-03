@@ -16,8 +16,8 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
       {/* Employee sidebar */}
       <aside className="flex h-screen w-60 flex-col border-r border-white/8 bg-[#0e0e0e]">
         <div className="flex h-16 items-center gap-3 border-b border-white/8 px-5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#6c44fc] shadow-[0_0_12px_rgba(108,68,252,0.4)]">
-            <Zap className="h-3.5 w-3.5 text-white" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_12px_rgba(108,68,252,0.4)]">
+            <img src="/logo.png" alt="FlashPay" className="h-7 w-7 object-cover" />
           </div>
           <div>
             <p className="text-sm font-bold text-white">FlashPay</p>
