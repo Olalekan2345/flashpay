@@ -35,9 +35,30 @@ export default async function DashboardOverviewPage() {
 
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const paidThisMonth = payrollRecords
-    .filter(r => r.status === 'completed' && r.paid_at && new Date(r.paid_at) >= monthStart)
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  const completedRecords = payrollRecords.filter(r => r.status === 'completed' && r.paid_at)
+
+  const paidThisMonth = completedRecords
+    .filter(r => new Date(r.paid_at!) >= monthStart)
     .reduce((sum, r) => sum + r.amount, 0)
+
+  const paidLastMonth = completedRecords
+    .filter(r => {
+      const d = new Date(r.paid_at!)
+      return d >= lastMonthStart && d < monthStart
+    })
+    .reduce((sum, r) => sum + r.amount, 0)
+
+  // % change in payroll spend month-over-month
+  const payrollTrend = paidLastMonth === 0
+    ? null
+    : Math.round(((paidThisMonth - paidLastMonth) / paidLastMonth) * 100)
+
+  // Active employee count change vs last month (employees added this month)
+  const employeesAddedThisMonth = employees.filter(
+    e => new Date(e.created_at) >= monthStart
+  ).length
 
   const nextPayoutTotal = activeEmployees.reduce((sum, e) => sum + getSalaryFromToken(e.salary_token), 0)
 
@@ -95,7 +116,6 @@ export default async function DashboardOverviewPage() {
             icon={Wallet}
             iconColor="text-[#95ffdd]"
             iconBg="bg-[#95ffdd]/10 border border-[#95ffdd]/20"
-            trend={{ value: 12, positive: true, label: 'from last month' }}
           />
           <StatsCard
             title="Active Employees"
@@ -104,15 +124,16 @@ export default async function DashboardOverviewPage() {
             icon={Users}
             iconColor="text-[#5de2da]"
             iconBg="bg-[#5de2da]/10 border border-[#5de2da]/20"
+            trend={employeesAddedThisMonth > 0 ? { value: employeesAddedThisMonth, positive: true, label: `added this month` } : undefined}
           />
           <StatsCard
             title="Paid This Month"
             value={formatCurrency(paidThisMonth)}
-            subtitle={`${payrollRecords.filter(r => r.paid_at && new Date(r.paid_at) >= monthStart).length} transactions`}
+            subtitle={`${completedRecords.filter(r => new Date(r.paid_at!) >= monthStart).length} transactions`}
             icon={CreditCard}
             iconColor="text-[#6c44fc]"
             iconBg="bg-[#6c44fc]/15 border border-[#6c44fc]/20"
-            trend={{ value: 8, positive: true, label: 'vs last month' }}
+            trend={payrollTrend !== null ? { value: Math.abs(payrollTrend), positive: payrollTrend >= 0, label: 'vs last month' } : undefined}
           />
           <StatsCard
             title="Next Payout"
