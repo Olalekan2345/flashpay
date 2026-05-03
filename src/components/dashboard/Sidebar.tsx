@@ -27,7 +27,7 @@ export function Sidebar({ companyName = 'FlashPay', userInitials = 'FP' }: Sideb
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-white/8 bg-[#0e0e0e]">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/8 px-6">
+      <a href="/dashboard" className="flex h-16 items-center gap-3 border-b border-white/8 px-6 hover:opacity-80 transition-opacity">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_16px_rgba(108,68,252,0.4)]">
           <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover" />
         </div>
@@ -35,7 +35,7 @@ export function Sidebar({ companyName = 'FlashPay', userInitials = 'FP' }: Sideb
           <span className="text-sm font-bold text-white">FlashPay</span>
           <span className="ml-1 text-sm font-bold text-[#6c44fc]">Private</span>
         </div>
-      </div>
+      </a>
 
       {/* Company */}
       <div className="mx-3 mt-3 rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
