@@ -12,11 +12,25 @@ interface HeaderProps {
   userInitials?: string
 }
 
-export function Header({ title, subtitle, userName = 'Admin', userInitials = 'AD' }: HeaderProps) {
+export function Header({ title, subtitle, userName: userNameProp, userInitials: userInitialsProp }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [unread, setUnread] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [userName, setUserName] = useState(userNameProp ?? 'Admin')
+  const [userInitials, setUserInitials] = useState(userInitialsProp ?? 'AD')
+
+  useEffect(() => {
+    if (!userNameProp) {
+      fetch('/api/me')
+        .then(r => r.json())
+        .then(d => {
+          if (d.name) setUserName(d.name)
+          if (d.initials) setUserInitials(d.initials)
+        })
+        .catch(() => {})
+    }
+  }, [userNameProp])
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true)
