@@ -11,8 +11,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-black/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6c44fc] shadow-[0_0_16px_rgba(108,68,252,0.4)]">
-              <Zap className="h-4 w-4 text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_16px_rgba(108,68,252,0.4)]">
+              <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover" />
             </div>
             <span className="text-lg font-bold">
               FlashPay <span className="text-[#6c44fc]">Private</span>
@@ -273,8 +273,8 @@ export default function LandingPage() {
       <footer className="border-t border-white/8 px-6 py-8">
         <div className="mx-auto max-w-7xl flex flex-col items-center gap-4 md:flex-row md:justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-[#6c44fc]">
-              <Zap className="h-3.5 w-3.5 text-white" />
+            <div className="flex h-6 w-6 items-center justify-center rounded overflow-hidden">
+              <img src="/logo.png" alt="FlashPay" className="h-6 w-6 object-cover" />
             </div>
             <span className="text-sm font-semibold text-[#999999]">FlashPay Private</span>
           </div>

@@ -28,8 +28,8 @@ export function Sidebar({ companyName = 'FlashPay', userInitials = 'FP' }: Sideb
     <aside className="flex h-screen w-64 flex-col border-r border-white/8 bg-[#0e0e0e]">
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-white/8 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6c44fc] shadow-[0_0_16px_rgba(108,68,252,0.4)]">
-          <Zap className="h-4 w-4 text-white" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_16px_rgba(108,68,252,0.4)]">
+          <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover" />
         </div>
         <div>
           <span className="text-sm font-bold text-white">FlashPay</span>
