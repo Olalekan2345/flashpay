@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { createSessionCookie } from '@/lib/auth'
+import { sendEmployerWelcomeEmail } from '@/lib/email'
 import { PublicKey } from '@solana/web3.js'
 import nacl from 'tweetnacl'
 
 export async function POST(req: NextRequest) {
   try {
-    const { wallet_address, signature, message, full_name, company_name } = await req.json()
+    const { wallet_address, signature, message, full_name, company_name, email } = await req.json()
 
     if (!wallet_address || !signature || !message) {
       return NextResponse.json({ error: 'Wallet address, signature, and message required' }, { status: 400 })
@@ -41,15 +42,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Full name and company name required for new accounts' }, { status: 400 })
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!email?.trim() || !emailRegex.test(email.trim())) {
+        return NextResponse.json({ error: 'A valid email address is required' }, { status: 400 })
+      }
+
+      const existingEmail = await db.getEmployerByEmail(email.toLowerCase().trim())
+      if (existingEmail) {
+        return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+      }
+
       employer = await db.createEmployer({
         name: full_name.trim(),
-        email: `${wallet_address.slice(0, 8).toLowerCase()}@wallet.flashpay`,
+        email: email.toLowerCase().trim(),
         password_hash: '',
         company_name: company_name.trim(),
         company_logo: null,
         wallet_address,
         treasury_balance: 0,
       })
+
+      // Send welcome email (non-blocking)
+      sendEmployerWelcomeEmail({
+        employerName: employer.name,
+        employerEmail: employer.email,
+        companyName: employer.company_name,
+      }).catch(err => console.error('Welcome email failed:', err))
     }
 
     const session = {

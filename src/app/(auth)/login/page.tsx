@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [step, setStep] = useState<'connect' | 'profile' | 'signing'>('connect')
   const [companyName, setCompanyName] = useState('')
   const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isNewUser, setIsNewUser] = useState(false)
 
@@ -66,6 +68,7 @@ export default function LoginPage() {
           message: messageHex,
           full_name: isNew ? fullName : undefined,
           company_name: isNew ? companyName : undefined,
+          email: isNew ? email : undefined,
         }),
       })
       const data = await res.json()
@@ -172,7 +175,7 @@ export default function LoginPage() {
 
               <div>
                 <h2 className="text-lg font-bold text-white">Complete Your Profile</h2>
-                <p className="text-sm text-[#999999] mt-1">Just two fields to create your employer account.</p>
+                <p className="text-sm text-[#999999] mt-1">Fill in your details to create your employer account.</p>
               </div>
 
               <Input
@@ -187,13 +190,37 @@ export default function LoginPage() {
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
               />
+              <div>
+                <Input
+                  label="Work Email"
+                  type="email"
+                  placeholder="alex@nexuslabs.com"
+                  value={email}
+                  onChange={e => {
+                    setEmail(e.target.value)
+                    setEmailError('')
+                  }}
+                  onBlur={() => {
+                    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      setEmailError('Please enter a valid email address')
+                    }
+                  }}
+                />
+                {emailError && <p className="mt-1 text-xs text-red-400">{emailError}</p>}
+              </div>
 
               <Button
                 className="w-full"
                 size="lg"
                 loading={loading}
-                disabled={!fullName.trim() || !companyName.trim()}
-                onClick={() => walletSignIn(true)}
+                disabled={!fullName.trim() || !companyName.trim() || !email.trim() || !!emailError}
+                onClick={() => {
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setEmailError('Please enter a valid email address')
+                    return
+                  }
+                  walletSignIn(true)
+                }}
               >
                 Sign &amp; Create Account <ArrowRight className="h-4 w-4" />
               </Button>
