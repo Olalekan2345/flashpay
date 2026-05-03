@@ -39,9 +39,7 @@ export async function sendInviteEmail({
 
     <div style="text-align:center;margin-bottom:32px;">
       <div style="display:inline-flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;background:linear-gradient(135deg,#7c3aed,#4338ca);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
-          <span style="color:white;font-size:18px;font-weight:bold;">⚡</span>
-        </div>
+        <img src="${APP_URL}/logo.png" alt="FlashPay" width="36" height="36" style="border-radius:10px;display:block;" />
         <span style="color:white;font-size:20px;font-weight:700;">FlashPay <span style="color:#a78bfa;">Private</span></span>
       </div>
     </div>
