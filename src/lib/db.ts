@@ -126,11 +126,11 @@ export const db = {
   },
 
   async getAllActiveSchedulesDue(): Promise<PayrollSchedule[]> {
+    // Returns all active schedules — timing is driven by employee next_pay_date, not schedule next_run_at
     const { data } = await svc()
       .from('payroll_schedules')
       .select('*')
       .eq('active', true)
-      .lte('next_run_at', new Date().toISOString())
     return (data as PayrollSchedule[]) ?? []
   },
 

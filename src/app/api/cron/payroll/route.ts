@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { db } from '@/lib/db'
 import { arciumVerifyPaymentProof } from '@/lib/arcium'
 import { simulateUSDCTransfer, getUSDCBalance } from '@/lib/solana'
-import { getPayPeriod } from '@/lib/utils'
+import { getPayPeriod, getNextPayDate } from '@/lib/utils'
 import { sendAutoPayrollEmail } from '@/lib/email'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -14,36 +14,19 @@ function getSalaryFromToken(token: string): number {
   } catch { return 0 }
 }
 
-function computeNextRunAt(frequency: string, payDay: number): string {
-  const now = new Date()
-  const next = new Date(now)
-
-  if (frequency === 'monthly') {
-    next.setMonth(next.getMonth() + 1)
-    next.setDate(payDay)
-    next.setHours(9, 0, 0, 0)
-  } else if (frequency === 'biweekly') {
-    next.setDate(next.getDate() + 14)
-    next.setHours(9, 0, 0, 0)
-  } else {
-    next.setDate(next.getDate() + 7)
-    next.setHours(9, 0, 0, 0)
-  }
-
-  return next.toISOString()
-}
-
 export async function GET(req: NextRequest) {
-  // Verify cron secret so only Vercel can call this
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const schedules = await db.getAllActiveSchedulesDue()
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
 
+  // Get all active schedules (one per employer = auto-payroll on/off)
+  const schedules = await db.getAllActiveSchedulesDue()
   if (schedules.length === 0) {
-    return NextResponse.json({ message: 'No schedules due', ran: 0 })
+    return NextResponse.json({ message: 'No active auto-payroll employers', ran: 0 })
   }
 
   const results = []
@@ -53,17 +36,37 @@ export async function GET(req: NextRequest) {
       const employer = await db.getEmployer(schedule.employer_id)
       if (!employer) continue
 
-      const employees = (await db.getEmployees(employer.id)).filter(e => e.status === 'active')
-      const totalPayout = employees.reduce((sum, e) => sum + getSalaryFromToken(e.salary_token), 0)
+      // Find employees whose next_pay_date is today or overdue
+      const allEmployees = await db.getEmployees(employer.id)
+      const dueEmployees = allEmployees.filter(e =>
+        e.status === 'active' &&
+        e.next_pay_date &&
+        new Date(e.next_pay_date) <= today
+      )
 
+      if (dueEmployees.length === 0) {
+        await db.updateSchedule(schedule.id, {
+          last_run_at: new Date().toISOString(),
+          last_run_status: 'skipped',
+          last_ai_reason: 'No employees are due for payment today.',
+        })
+        results.push({ employer: employer.company_name, status: 'skipped', reason: 'No employees due' })
+        continue
+      }
+
+      const totalPayout = dueEmployees.reduce((sum, e) => sum + getSalaryFromToken(e.salary_token), 0)
       const realBalance = employer.wallet_address
         ? await getUSDCBalance(employer.wallet_address)
         : employer.treasury_balance
 
-      let shouldRun = true
-      let aiReason = 'Scheduled payroll approved — all conditions met.'
+      // Build employee summary for AI
+      const employeeSummary = dueEmployees.map(e =>
+        `${e.full_name} (${e.job_role}, ${e.pay_frequency}, $${getSalaryFromToken(e.salary_token).toFixed(2)} USDC, next_pay_date: ${e.next_pay_date})`
+      ).join('\n')
 
-      // AI agent decision
+      let shouldRun = true
+      let aiReason = 'All conditions met — payroll approved.'
+
       if (schedule.ai_enabled && process.env.ANTHROPIC_API_KEY) {
         const message = await anthropic.messages.create({
           model: 'claude-haiku-4-5-20251001',
@@ -73,14 +76,13 @@ export async function GET(req: NextRequest) {
             content: `You are a payroll AI agent for FlashPay. Decide whether to run payroll now.
 
 Company: ${employer.company_name}
-Schedule: ${schedule.name} (${schedule.frequency})
-Active employees: ${employees.length}
-Total payout needed: $${totalPayout.toFixed(2)} USDC
 Treasury balance: $${realBalance.toFixed(2)} USDC
-Employees with wallets: ${employees.filter(e => e.wallet_address).length}/${employees.length}
+Total payout needed: $${totalPayout.toFixed(2)} USDC
+Employees due for payment:
+${employeeSummary}
 
 Respond with JSON only: { "run": true/false, "reason": "one sentence explanation" }
-Only block payroll if: balance is insufficient, no active employees, or 0 employees have wallets.`,
+Only block payroll if balance is insufficient or no employees have wallets connected.`,
           }],
         })
 
@@ -90,37 +92,31 @@ Only block payroll if: balance is insufficient, no active employees, or 0 employ
           shouldRun = parsed.run
           aiReason = parsed.reason
         } catch {
-          // AI parse failed — default to running if conditions are met
-          shouldRun = totalPayout > 0 && realBalance >= totalPayout && employees.length > 0
+          shouldRun = realBalance >= totalPayout
         }
       } else {
-        shouldRun = totalPayout > 0 && realBalance >= totalPayout && employees.length > 0
+        shouldRun = realBalance >= totalPayout
         if (!shouldRun) {
-          aiReason = realBalance < totalPayout
-            ? `Insufficient balance. Need $${totalPayout.toFixed(2)}, have $${realBalance.toFixed(2)}.`
-            : 'No active employees to pay.'
+          aiReason = `Insufficient balance. Need $${totalPayout.toFixed(2)}, have $${realBalance.toFixed(2)}.`
         }
       }
 
-      const nextRunAt = computeNextRunAt(schedule.frequency, schedule.pay_day)
-
       if (!shouldRun) {
         await db.updateSchedule(schedule.id, {
-          next_run_at: nextRunAt,
           last_run_at: new Date().toISOString(),
           last_run_status: 'skipped',
           last_ai_reason: aiReason,
         })
-        results.push({ schedule: schedule.name, status: 'skipped', reason: aiReason })
+        results.push({ employer: employer.company_name, status: 'skipped', reason: aiReason })
         continue
       }
 
-      // Execute payroll
+      // Execute payroll for each due employee
       const paidAt = new Date().toISOString()
       const { start: periodStart, end: periodEnd } = getPayPeriod('monthly')
       let employeesPaid = 0
 
-      for (const emp of employees) {
+      for (const emp of dueEmployees) {
         const salaryAmount = getSalaryFromToken(emp.salary_token)
         if (!salaryAmount) continue
 
@@ -128,7 +124,7 @@ Only block payroll if: balance is insufficient, no active employees, or 0 employ
           fromAddress: employer.wallet_address || 'treasury_wallet',
           toAddress: emp.wallet_address || 'pending_wallet',
           amount: salaryAmount,
-          memo: `FlashPay auto-payroll — ${schedule.name}`,
+          memo: `FlashPay auto-payroll (${emp.pay_frequency})`,
         })
 
         const proof = arciumVerifyPaymentProof(txResult.signature, emp.id, salaryAmount)
@@ -149,18 +145,21 @@ Only block payroll if: balance is insufficient, no active employees, or 0 employ
           arcium_proof: proof.proof,
         })
 
+        // Update employee's next_pay_date based on their own frequency
+        await db.updateEmployee(emp.id, {
+          next_pay_date: getNextPayDate(emp.pay_frequency),
+        })
+
         employeesPaid++
       }
 
       await db.updateEmployerBalance(employer.id, realBalance - totalPayout)
       await db.updateSchedule(schedule.id, {
-        next_run_at: nextRunAt,
         last_run_at: paidAt,
         last_run_status: 'success',
         last_ai_reason: aiReason,
       })
 
-      // Send summary email to employer
       if (employer.email && !employer.email.includes('@wallet.flashpay')) {
         sendAutoPayrollEmail({
           employerName: employer.name,
@@ -169,19 +168,19 @@ Only block payroll if: balance is insufficient, no active employees, or 0 employ
           employeesPaid,
           totalAmount: totalPayout,
           aiReason,
-          scheduleName: schedule.name,
-          nextRunAt,
+          scheduleName: 'Auto Payroll',
+          nextRunAt: new Date(Date.now() + 86400000).toISOString(),
         }).catch(err => console.error('Auto payroll email failed:', err))
       }
 
-      results.push({ schedule: schedule.name, status: 'success', employees_paid: employeesPaid, total: totalPayout })
+      results.push({ employer: employer.company_name, status: 'success', employees_paid: employeesPaid, total: totalPayout })
     } catch (err) {
-      console.error(`Cron payroll error for schedule ${schedule.id}:`, err)
+      console.error(`Cron error for schedule ${schedule.id}:`, err)
       await db.updateSchedule(schedule.id, {
         last_run_status: 'error',
         last_ai_reason: err instanceof Error ? err.message : 'Unknown error',
       }).catch(() => {})
-      results.push({ schedule: schedule.name, status: 'error' })
+      results.push({ status: 'error' })
     }
   }
 

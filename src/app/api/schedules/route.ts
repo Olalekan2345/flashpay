@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Name, frequency and pay day are required' }, { status: 400 })
   }
 
+  // next_run_at is set to tomorrow — actual timing is driven by employee next_pay_date
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(9, 0, 0, 0)
+
   const schedule = await db.createSchedule({
     employer_id: employer.id,
     name: name.trim(),
@@ -51,7 +56,7 @@ export async function POST(req: NextRequest) {
     pay_day: Number(pay_day),
     active: true,
     ai_enabled: ai_enabled ?? true,
-    next_run_at: computeFirstRunAt(frequency, Number(pay_day)),
+    next_run_at: tomorrow.toISOString(),
     last_run_at: null,
     last_run_status: null,
     last_ai_reason: null,
