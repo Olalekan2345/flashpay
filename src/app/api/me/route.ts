@@ -12,5 +12,10 @@ export async function GET() {
     .toUpperCase()
     .slice(0, 2)
 
-  return NextResponse.json({ name: session.name, initials })
+  return NextResponse.json({
+    name: session.name,
+    initials,
+    email: session.email,
+    company_name: session.company_name,
+  })
 }
