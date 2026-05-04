@@ -29,7 +29,7 @@ export function Sidebar({ companyName = 'FlashPay', userInitials = 'FP' }: Sideb
       {/* Logo */}
       <a href="/dashboard" className="flex h-16 items-center gap-3 border-b border-white/8 px-6 hover:opacity-80 transition-opacity">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_16px_rgba(108,68,252,0.4)]">
-          <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover" />
+          <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover logo-animated" />
         </div>
         <div>
           <span className="text-sm font-bold text-white">FlashPay</span>

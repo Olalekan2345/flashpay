@@ -101,7 +101,7 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden shadow-[0_0_20px_rgba(108,68,252,0.4)]">
-              <img src="/logo.png" alt="FlashPay" className="h-9 w-9 object-cover" />
+              <img src="/logo.png" alt="FlashPay" className="h-9 w-9 object-cover logo-animated" />
             </div>
             <span className="text-xl font-bold text-white">FlashPay <span className="text-[#6c44fc]">Private</span></span>
           </Link>

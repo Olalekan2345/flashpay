@@ -17,7 +17,7 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
       <aside className="flex h-screen w-60 flex-col border-r border-white/8 bg-[#0e0e0e]">
         <a href="/employee" className="flex h-16 items-center gap-3 border-b border-white/8 px-5 hover:opacity-80 transition-opacity">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_12px_rgba(108,68,252,0.4)]">
-            <img src="/logo.png" alt="FlashPay" className="h-7 w-7 object-cover" />
+            <img src="/logo.png" alt="FlashPay" className="h-7 w-7 object-cover logo-animated" />
           </div>
           <div>
             <p className="text-sm font-bold text-white">FlashPay</p>

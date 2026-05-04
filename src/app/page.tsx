@@ -12,7 +12,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-[0_0_16px_rgba(108,68,252,0.4)]">
-              <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover" />
+              <img src="/logo.png" alt="FlashPay" className="h-8 w-8 object-cover logo-animated" />
             </div>
             <span className="text-lg font-bold">
               FlashPay <span className="text-[#6c44fc]">Private</span>
