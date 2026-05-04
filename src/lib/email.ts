@@ -185,3 +185,99 @@ export async function sendEmployerWelcomeEmail({
     // Don't throw — welcome email failure shouldn't block account creation
   }
 }
+
+export async function sendAutoPayrollEmail({
+  employerName,
+  employerEmail,
+  companyName,
+  employeesPaid,
+  totalAmount,
+  aiReason,
+  scheduleName,
+  nextRunAt,
+}: {
+  employerName: string
+  employerEmail: string
+  companyName: string
+  employeesPaid: number
+  totalAmount: number
+  aiReason: string
+  scheduleName: string
+  nextRunAt: string
+}) {
+  const dashboardUrl = `${APP_URL}/dashboard/payroll`
+
+  const res = await fetch(BREVO_API, {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY!,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.BREVO_SENDER_NAME || 'FlashPay Private',
+        email: process.env.BREVO_SENDER_EMAIL,
+      },
+      to: [{ name: employerName, email: employerEmail }],
+      subject: `Auto-payroll ran — ${companyName} · $${totalAmount.toFixed(2)} USDC sent`,
+      htmlContent: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+<body style="margin:0;padding:0;background:#0a0b0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;padding:0 16px;">
+
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="display:inline-flex;align-items:center;gap:10px;">
+        <img src="${APP_URL}/logo.png" alt="FlashPay" width="36" height="36" style="border-radius:10px;display:block;" />
+        <span style="color:white;font-size:20px;font-weight:700;">FlashPay <span style="color:#a78bfa;">Private</span></span>
+      </div>
+    </div>
+
+    <div style="background:#0f1117;border:1px solid rgba(100,116,139,0.3);border-radius:16px;padding:40px;">
+      <h1 style="color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 8px;">Payroll completed ✅</h1>
+      <p style="color:#94a3b8;font-size:15px;margin:0 0 28px;line-height:1.6;">
+        Your AI payroll agent ran <strong style="color:#e2e8f0;">${scheduleName}</strong> automatically for <strong style="color:#c4b5fd;">${companyName}</strong>.
+      </p>
+
+      <div style="background:rgba(149,255,221,0.06);border:1px solid rgba(149,255,221,0.15);border-radius:12px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:#94a3b8;font-size:13px;">Total sent</span>
+          <span style="color:#95ffdd;font-size:16px;font-weight:700;">$${totalAmount.toFixed(2)} USDC</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:#94a3b8;font-size:13px;">Employees paid</span>
+          <span style="color:#e2e8f0;font-size:14px;font-weight:600;">${employeesPaid}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:#94a3b8;font-size:13px;">Next run</span>
+          <span style="color:#e2e8f0;font-size:14px;">${new Date(nextRunAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(108,68,252,0.08);border:1px solid rgba(108,68,252,0.2);border-radius:12px;padding:16px;margin-bottom:24px;">
+        <p style="color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px;">AI Agent Decision</p>
+        <p style="color:#c4b5fd;font-size:14px;margin:0;line-height:1.6;">"${aiReason}"</p>
+      </div>
+
+      <a href="${dashboardUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#6c44fc,#4338ca);color:white;font-size:15px;font-weight:600;text-decoration:none;padding:14px 24px;border-radius:10px;">
+        View Payroll Records →
+      </a>
+    </div>
+
+    <p style="color:#334155;font-size:12px;text-align:center;margin-top:24px;">
+      Protected by Arcium Confidential Compute · Powered by Solana<br/>
+      To disable auto-payroll, visit your Schedule settings.
+    </p>
+  </div>
+</body>
+</html>`,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    console.error('Auto payroll email error:', err)
+  }
+}

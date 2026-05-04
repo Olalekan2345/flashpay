@@ -3,7 +3,7 @@ import path from 'path'
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
-  serverExternalPackages: ['@solana/web3.js', '@arcium-hq/client', '@arcium-hq/reader'],
+  serverExternalPackages: ['@solana/web3.js', '@arcium-hq/client', '@arcium-hq/reader', '@anthropic-ai/sdk'],
   async headers() {
     return [
       {

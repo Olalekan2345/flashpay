@@ -59,6 +59,30 @@ create table if not exists payroll_records (
   created_at       timestamptz not null default now()
 );
 
+-- ── Payroll Schedules ─────────────────────────────────────────────────────
+
+create table if not exists payroll_schedules (
+  id              text primary key default 'sched_' || gen_random_uuid(),
+  employer_id     text not null references employers(id) on delete cascade,
+  name            text not null default 'Auto Payroll',
+  frequency       text not null check (frequency in ('weekly','biweekly','monthly')),
+  pay_day         integer not null default 1,
+  active          boolean not null default true,
+  ai_enabled      boolean not null default true,
+  next_run_at     timestamptz not null,
+  last_run_at     timestamptz,
+  last_run_status text,
+  last_ai_reason  text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+create trigger payroll_schedules_updated_at
+  before update on payroll_schedules
+  for each row execute function update_updated_at();
+
+alter table payroll_schedules disable row level security;
+
 -- ── Treasury Transactions ──────────────────────────────────────────────────
 
 create table if not exists treasury_transactions (

@@ -4,6 +4,7 @@ import type { Database } from './supabase'
 type Employer = Database['public']['Tables']['employers']['Row']
 type Employee = Database['public']['Tables']['employees']['Row']
 type PayrollRecord = Database['public']['Tables']['payroll_records']['Row']
+type PayrollSchedule = Database['public']['Tables']['payroll_schedules']['Row']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>
@@ -115,5 +116,37 @@ export const db = {
     const { data, error } = await svc().from('payroll_records').update(updates as Row).eq('id', id).select().single()
     if (error) throw error
     return data as PayrollRecord
+  },
+
+  // ── Payroll Schedules ──────────────────────────────────────────────────────
+
+  async getSchedules(employerId: string): Promise<PayrollSchedule[]> {
+    const { data } = await svc().from('payroll_schedules').select('*').eq('employer_id', employerId)
+    return (data as PayrollSchedule[]) ?? []
+  },
+
+  async getAllActiveSchedulesDue(): Promise<PayrollSchedule[]> {
+    const { data } = await svc()
+      .from('payroll_schedules')
+      .select('*')
+      .eq('active', true)
+      .lte('next_run_at', new Date().toISOString())
+    return (data as PayrollSchedule[]) ?? []
+  },
+
+  async createSchedule(data: Omit<PayrollSchedule, 'id' | 'created_at' | 'updated_at'>): Promise<PayrollSchedule> {
+    const { data: row, error } = await svc().from('payroll_schedules').insert(data as Row).select().single()
+    if (error) throw error
+    return row as PayrollSchedule
+  },
+
+  async updateSchedule(id: string, updates: Partial<Omit<PayrollSchedule, 'id' | 'created_at'>>): Promise<void> {
+    const { error } = await svc().from('payroll_schedules').update(updates as Row).eq('id', id)
+    if (error) throw error
+  },
+
+  async deleteSchedule(id: string): Promise<void> {
+    const { error } = await svc().from('payroll_schedules').delete().eq('id', id)
+    if (error) throw error
   },
 }

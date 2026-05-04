@@ -67,6 +67,25 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['payroll_records']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['payroll_records']['Insert']>
       }
+      payroll_schedules: {
+        Row: {
+          id: string
+          employer_id: string
+          name: string
+          frequency: 'weekly' | 'biweekly' | 'monthly'
+          pay_day: number
+          active: boolean
+          ai_enabled: boolean
+          next_run_at: string
+          last_run_at: string | null
+          last_run_status: string | null
+          last_ai_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['payroll_schedules']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['payroll_schedules']['Insert']>
+      }
       treasury_transactions: {
         Row: {
           id: string

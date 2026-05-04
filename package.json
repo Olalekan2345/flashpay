@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.92.0",
     "@arcium-hq/client": "^0.9.7",
     "@arcium-hq/reader": "^0.9.7",
     "@project-serum/anchor": "^0.26.0",
